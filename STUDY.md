@@ -7,7 +7,7 @@ Read in this order. Each file assumes the one before it.
 
 ---
 
-## 1. `SCHEMA.md` — the concept, no code
+## 1. [`SCHEMA.md`](SCHEMA.md) — the concept, no code
 
 **Find:** why a page is data instead of HTML, and what the four levels are.
 
@@ -18,7 +18,7 @@ structure and a function that draws it.
 
 ---
 
-## 2. `src/blocks/TextBlock.jsx` — 25 lines, the smallest complete component
+## 2. [`src/blocks/TextBlock.jsx`](src/blocks/TextBlock.jsx) — 25 lines, the smallest complete component
 
 Start here for code because it's the whole React model at minimum size.
 
@@ -33,7 +33,7 @@ Start here for code because it's the whole React model at minimum size.
 
 ---
 
-## 3. `src/blocks/index.js` — 21 lines, the lookup table
+## 3. [`src/blocks/index.js`](src/blocks/index.js) — 21 lines, the lookup table
 
 **Find:** `BLOCK_COMPONENTS` — a plain object mapping the string `'text'` to the `TextBlock`
 function. Nothing clever, and that's the point.
@@ -47,7 +47,7 @@ the type up by name at runtime. Adding a new kind of block is one line here plus
 
 ---
 
-## 4. `src/Renderer.jsx` — 163 lines, **the heart of the project**
+## 4. [`src/Renderer.jsx`](src/Renderer.jsx) — 163 lines, **the heart of the project**
 
 If you only truly understand one file, this is the one.
 
@@ -76,7 +76,7 @@ function run?
 
 ---
 
-## 5. `src/schema.js` — 216 lines, but only read two parts
+## 5. [`src/schema.js`](src/schema.js) — 216 lines, but only read two parts
 
 **Read:** `TOKENS` and `token()` at the bottom.
 
@@ -93,7 +93,7 @@ function run?
 
 ---
 
-## 6. `src/App.jsx` — 132 lines, where the loop closes
+## 6. [`src/App.jsx`](src/App.jsx) — 132 lines, where the loop closes
 
 **Find:**
 - `const [site, setSite] = useState(fixtureSite)` — the single line that separates Day 1 from
@@ -108,7 +108,7 @@ click to repaint.
 
 ---
 
-## 7. `src/state/pageOps.js` — 94 lines, the rule that trips everyone
+## 7. [`src/state/pageOps.js`](src/state/pageOps.js) — 94 lines, the rule that trips everyone
 
 **Find:** every function builds a **new** object instead of changing the old one — all those
 `...` spreads.
@@ -124,7 +124,7 @@ intact.
 
 ---
 
-## 8. `src/edit/Field.jsx` — 127 lines, how form inputs work in React
+## 8. [`src/edit/Field.jsx`](src/edit/Field.jsx) — 127 lines, how form inputs work in React
 
 **Find:** the input doesn't own its value. It's handed `value` and `onChange` and does nothing on
 its own — it reports "the user typed this" upward and waits to be re-rendered with a new value.
@@ -136,7 +136,7 @@ circular because it is. (The jargon is "controlled component". The name is worse
 
 ---
 
-## 9. `src/edit/controls.js` + `PropertiesPanel.jsx` — the same trick, one level up
+## 9. [`src/edit/controls.js`](src/edit/controls.js) + [`PropertiesPanel.jsx`](src/edit/PropertiesPanel.jsx) — the same trick, one level up
 
 **Find:** `PropertiesPanel` contains **no knowledge of any block type**. It reads a list of
 descriptions in `controls.js` and builds itself.
@@ -154,11 +154,11 @@ shape, skip the rest.
 
 | File | Why |
 |---|---|
-| `src/data/fixture.js` | Throwaway test data. Gets deleted once the editor builds real pages. |
-| `src/blocks/VideoBlock.jsx` | The URL-parsing half is fiddly and teaches nothing general. |
-| `src/blocks/GalleryBlock.jsx`, `ImageBlock`, `ButtonBlock`, `CalendarBlock` | Same shape as `TextBlock`, no new ideas. |
-| `src/SiteHeader.jsx` | Read it later, when multipage nav matters. |
-| `vite.config.js`, `index.css`, `package.json` | Setup. Vibe-code territory. |
+| [`src/data/fixture.js`](src/data/fixture.js) | Throwaway test data. Gets deleted once the editor builds real pages. |
+| [`src/blocks/VideoBlock.jsx`](src/blocks/VideoBlock.jsx) | The URL-parsing half is fiddly and teaches nothing general. |
+| [`GalleryBlock`](src/blocks/GalleryBlock.jsx), [`ImageBlock`](src/blocks/ImageBlock.jsx), [`ButtonBlock`](src/blocks/ButtonBlock.jsx), [`CalendarBlock`](src/blocks/CalendarBlock.jsx) | Same shape as `TextBlock`, no new ideas. |
+| [`src/SiteHeader.jsx`](src/SiteHeader.jsx) | Read it later, when multipage nav matters. |
+| [`vite.config.js`](vite.config.js), [`index.css`](src/index.css), [`package.json`](package.json) | Setup. Vibe-code territory. |
 
 ---
 

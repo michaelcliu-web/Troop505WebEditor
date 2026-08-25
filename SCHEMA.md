@@ -86,10 +86,12 @@ Block = {
 
 | File | What it does |
 |---|---|
-| `src/schema.js` | The shapes above, as code: defaults for every block type, plus `newId()` |
-| `src/blocks/` | One small component per block type. Each one just turns `props` into markup. |
-| `src/Renderer.jsx` | Walks Page → Section → Row → Block and picks the right component |
-| `src/data/fixture.js` | **Throwaway** test data, so the renderer has something to draw |
+| [`src/schema.js`](src/schema.js) | The shapes above, as code: defaults for every block type, plus `newId()` |
+| [`src/blocks/`](src/blocks/) | One small component per block type. Each one just turns `props` into markup. |
+| [`src/Renderer.jsx`](src/Renderer.jsx) | Walks Page → Section → Row → Block and picks the right component |
+| [`src/data/fixture.js`](src/data/fixture.js) | **Throwaway** test data, so the renderer has something to draw |
+
+A suggested reading order, with what to look for in each file, is in [`STUDY.md`](STUDY.md).
 
 ## About the fixture
 
