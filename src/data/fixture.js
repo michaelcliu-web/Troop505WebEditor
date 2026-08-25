@@ -22,7 +22,19 @@ function mikeSection() {
     makeRow([
       makeBlock(
         'text', { 
-          content: "yale",
+          content: "Yale",
+          size: '4xl',
+          font: 'heading',
+          weight: 'bold', 
+          color: 'cream',
+          align: 'center', 
+        }
+      )
+    ]),
+    makeRow([
+      makeBlock(
+        'text', { 
+          content: "Yale",
           size: '4xl',
           font: 'heading',
           weight: 'bold', 
@@ -33,6 +45,9 @@ function mikeSection() {
     ])
   ]
   )
+  // Orange is called 'ember'. Valid colors: cream, parchment, forest, forest-deep, ember, bark.
+  // These are case-sensitive, and `overlay` only does anything when type is 'image'.
+  section.background = { type: 'color', value: 'ember', overlay: 0 }
   // Without this line the function hands back `undefined`, which lands in the sections
   // list and crashes the renderer. Every section-building function must return its section.
   return section

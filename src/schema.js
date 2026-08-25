@@ -201,5 +201,16 @@ const TOKEN_FALLBACKS = {
 export function token(group, key, fallback = '') {
   const groupTokens = TOKENS[group]
   if (!groupTokens) return fallback
+
+  if (key !== undefined && groupTokens[key] === undefined && import.meta.env.DEV) {
+    // Falling back silently is right for a leader using the editor — a typo should never
+    // look broken. But while developing it hides mistakes, so say so in the console.
+    // `import.meta.env.DEV` means this warning disappears from the real published site.
+    console.warn(
+      `Unknown ${group}: "${key}". Using "${TOKEN_FALLBACKS[group]}" instead. ` +
+        `Valid values: ${Object.keys(groupTokens).join(', ')}`,
+    )
+  }
+
   return groupTokens[key] ?? groupTokens[TOKEN_FALLBACKS[group]] ?? fallback
 }
