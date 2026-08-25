@@ -14,25 +14,49 @@ import { token } from './schema'
 
   This is why the editor is possible. The editor never generates markup; it just changes the
   data, and React re-runs this code to redraw the screen.
+
+  EDIT MODE: the same renderer draws both the public site and the editing canvas. When `editing`
+  is true it adds click targets and outlines — but the layout is identical, so what a leader
+  sees while editing is exactly what visitors get. Two separate renderers would inevitably
+  drift apart.
 */
 
-function Block({ block }) {
+function Block({ block, editing, selectedId, onSelect }) {
   const Component = BLOCK_COMPONENTS[block.type]
 
   // Unknown type: don't crash the whole page. This happens if a page was saved by a newer
   // version of the app than the one currently running.
-  if (!Component) {
-    return (
-      <div className="rounded-lg bg-[var(--color-parchment)] p-4 text-sm text-[var(--color-dusk)]">
-        Can&apos;t show this yet ({block.type})
-      </div>
-    )
-  }
+  const content = Component ? (
+    <Component props={block.props} />
+  ) : (
+    <div className="rounded-lg bg-[var(--color-parchment)] p-4 text-sm text-[var(--color-dusk)]">
+      Can&apos;t show this yet ({block.type})
+    </div>
+  )
 
-  return <Component props={block.props} />
+  if (!editing) return content
+
+  const isSelected = selectedId === block.id
+
+  return (
+    <div
+      onClick={(e) => {
+        // Without this, the click would also reach the section behind and select that instead.
+        e.stopPropagation()
+        onSelect({ type: 'block', id: block.id })
+      }}
+      className={`relative cursor-pointer rounded-lg outline-offset-4 transition-all ${
+        isSelected
+          ? 'outline outline-2 outline-[var(--color-ember)]'
+          : 'hover:outline hover:outline-2 hover:outline-dashed hover:outline-[var(--color-ember)]/50'
+      }`}
+    >
+      {content}
+    </div>
+  )
 }
 
-function Row({ row }) {
+function Row({ row, editing, selectedId, onSelect }) {
   return (
     <div
       className={`flex flex-col sm:flex-row ${token('gap', row.gap)} ${token('rowAlign', row.align)}`}
@@ -48,14 +72,14 @@ function Row({ row }) {
           pixel positioning.
         */
         <div key={block.id} className="w-full" style={{ flexBasis: `${block.width}%` }}>
-          <Block block={block} />
+          <Block block={block} editing={editing} selectedId={selectedId} onSelect={onSelect} />
         </div>
       ))}
     </div>
   )
 }
 
-function Section({ section }) {
+function Section({ section, editing, selectedId, onSelect }) {
   const { background, padding, maxWidth, rows } = section
   const isImage = background?.type === 'image' && background.value
 
@@ -71,9 +95,29 @@ function Section({ section }) {
     : undefined
 
   const colorClass = !isImage ? token('bgColor', background?.value, 'bg-[var(--color-cream)]') : ''
+  const isSelected = selectedId === section.id
 
   return (
-    <section className={`relative w-full ${colorClass}`} style={style}>
+    <section
+      onClick={
+        editing
+          ? (e) => {
+              // Same reason as the block above: without this the click keeps travelling
+              // outward to the canvas, which would clear the selection we just made.
+              e.stopPropagation()
+              onSelect({ type: 'section', id: section.id })
+            }
+          : undefined
+      }
+      className={`relative w-full ${colorClass} ${
+        editing
+          ? `cursor-pointer -outline-offset-2 ${
+              isSelected ? 'outline outline-2 outline-[var(--color-ember)]' : ''
+            }`
+          : ''
+      }`}
+      style={style}
+    >
       {isImage && background.overlay > 0 && (
         <div
           className="absolute inset-0 bg-black"
@@ -86,7 +130,13 @@ function Section({ section }) {
       >
         <div className="flex flex-col gap-8">
           {rows.map((row) => (
-            <Row key={row.id} row={row} />
+            <Row
+              key={row.id}
+              row={row}
+              editing={editing}
+              selectedId={selectedId}
+              onSelect={onSelect}
+            />
           ))}
         </div>
       </div>
@@ -94,13 +144,19 @@ function Section({ section }) {
   )
 }
 
-export default function Renderer({ page }) {
+export default function Renderer({ page, editing = false, selectedId = null, onSelect = () => {} }) {
   if (!page) return null
 
   return (
     <main>
       {page.sections.map((section) => (
-        <Section key={section.id} section={section} />
+        <Section
+          key={section.id}
+          section={section}
+          editing={editing}
+          selectedId={selectedId}
+          onSelect={onSelect}
+        />
       ))}
     </main>
   )

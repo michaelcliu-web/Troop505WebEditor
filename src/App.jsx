@@ -1,28 +1,132 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Renderer from './Renderer'
 import SiteHeader from './SiteHeader'
 import { fixtureSite } from './data/fixture'
+import PropertiesPanel from './edit/PropertiesPanel'
+import {
+  findBlock,
+  findSection,
+  updateBlock,
+  updateBlockProps,
+  updateSection,
+  updateSectionBackground,
+} from './state/pageOps'
 
 /*
-  Day 1: the site data is a fixed import and nothing can change it yet.
+  Day 2: the site now lives in STATE.
 
-  The ONLY state here is which page is showing. On Day 2 the site itself moves into state,
-  and the properties panel starts changing it — at which point the screen updates by itself,
-  because React redraws whenever state changes.
+  That one word is the whole difference from Day 1. Before, `site` was a fixed import that
+  nothing could change. Now it's held by `useState`, which means two things:
+
+    1. We can replace it with a new version.
+    2. When we do, React automatically redraws everything that uses it.
+
+  Nobody tells the page to update. There is no "refresh the screen" line anywhere in this app.
+  You hand React a new site object, and it works out what changed on screen.
+
+  Not saved anywhere yet — refreshing the browser starts over. Day 4 adds the database.
 */
+
 export default function App() {
-  const site = fixtureSite
-  const [currentSlug, setCurrentSlug] = useState(site.pages[0].slug)
+  const [site, setSite] = useState(fixtureSite)
+  const [currentSlug, setCurrentSlug] = useState(fixtureSite.pages[0].slug)
+  const [editing, setEditing] = useState(true)
+  const [selection, setSelection] = useState(null) // { type: 'block'|'section', id }
 
   const page = site.pages.find((p) => p.slug === currentSlug) ?? site.pages[0]
 
+  /*
+    Escape deselects. Sections cover the whole canvas, so there is no "empty space" left to
+    click on to get out of a selection — the keyboard is the way out.
+  */
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === 'Escape') setSelection(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  const selectedBlock = selection?.type === 'block' ? findBlock(site, selection.id) : null
+  const selectedSection = selection?.type === 'section' ? findSection(site, selection.id) : null
+
+  /*
+    Each of these takes the current site, builds a NEW site with one thing changed, and hands
+    it to setSite. Every edit in the whole app funnels through these three functions.
+  */
+  function changeBlockProp(key, value) {
+    setSite((current) => updateBlockProps(current, selection.id, { [key]: value }))
+  }
+
+  function changeBlockWidth(width) {
+    setSite((current) => updateBlock(current, selection.id, { width }))
+  }
+
+  function changeSection(path, value) {
+    setSite((current) =>
+      path.startsWith('background.')
+        ? updateSectionBackground(current, selection.id, { [path.slice('background.'.length)]: value })
+        : updateSection(current, selection.id, { [path]: value }),
+    )
+  }
+
   return (
-    <>
-      <SiteHeader site={site} currentSlug={currentSlug} onNavigate={setCurrentSlug} />
-      <Renderer page={page} />
-      <footer className="bg-[var(--color-forest-deep)] px-5 py-10 text-center text-sm text-[var(--color-cream)]/70">
-        Scaffolding — showing throwaway placeholder content
-      </footer>
-    </>
+    <div className="flex h-screen flex-col overflow-hidden">
+      <EditorBar
+        editing={editing}
+        onToggle={() => {
+          setEditing((e) => !e)
+          setSelection(null)
+        }}
+      />
+
+      <div className="flex min-h-0 flex-1">
+        {/* The page itself — the same Renderer that draws the public site. */}
+        <div className="min-w-0 flex-1 overflow-y-auto">
+          <SiteHeader site={site} currentSlug={currentSlug} onNavigate={setCurrentSlug} />
+          <Renderer
+            page={page}
+            editing={editing}
+            selectedId={selection?.id ?? null}
+            onSelect={setSelection}
+          />
+          <footer className="bg-[var(--color-forest-deep)] px-5 py-10 text-center text-sm text-[var(--color-cream)]/70">
+            Scaffolding — showing throwaway placeholder content
+          </footer>
+        </div>
+
+        {editing && (
+          <PropertiesPanel
+            selection={selection}
+            block={selectedBlock}
+            section={selectedSection}
+            onChangeBlockProp={changeBlockProp}
+            onChangeBlockWidth={changeBlockWidth}
+            onChangeSection={changeSection}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+/*
+  Minimal chrome, on purpose: one button. The UX target is a non-technical scoutmaster, and
+  every extra control is one more thing to be afraid of.
+*/
+function EditorBar({ editing, onToggle }) {
+  return (
+    <div className="flex shrink-0 items-center justify-between border-b border-stone-200 bg-white px-5 py-3">
+      <span className="text-sm font-semibold text-stone-500">
+        {editing ? 'You are editing this page' : 'This is how visitors see it'}
+      </span>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="cursor-pointer rounded-full border-0 bg-[var(--color-ember)] px-6 py-2.5 font-[family-name:var(--font-heading)] text-sm font-bold text-white transition-colors hover:bg-[var(--color-ember-bright)]"
+      >
+        {editing ? 'Preview' : 'Edit'}
+      </button>
+    </div>
   )
 }

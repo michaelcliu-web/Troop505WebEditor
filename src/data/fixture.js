@@ -17,11 +17,32 @@ import { makeBlock, makePage, makeRow, makeSection } from '../schema'
 
 const photo = (seed) => `https://picsum.photos/seed/${seed}/900/700`
 
+function mikeSection() { 
+  const section = makeSection([
+    makeRow([
+      makeBlock(
+        'text', { 
+          content: "yale",
+          size: '4xl',
+          font: 'heading',
+          weight: 'bold', 
+          color: 'cream',
+          align: 'center', 
+        }
+      )
+    ])
+  ]
+  )
+  // Without this line the function hands back `undefined`, which lands in the sections
+  // list and crashes the renderer. Every section-building function must return its section.
+  return section
+}
+
 function heroSection() {
   const section = makeSection([
     makeRow([
       makeBlock('text', {
-        content: 'A Placeholder Headline',
+        content: 'Michael',
         tag: 'h1',
         size: '2xl',
         font: 'heading',
@@ -32,7 +53,7 @@ function heroSection() {
     ]),
     makeRow([
       makeBlock('text', {
-        content: 'Filler subtitle text sits here to check spacing and contrast.',
+        content: 'A key that says content leads here ',
         size: 'lg',
         color: 'cream',
         align: 'center',
@@ -122,6 +143,7 @@ function emptyStateSection() {
 }
 
 const home = makePage('Home', 'home', [
+  mikeSection(), 
   heroSection(),
   twoColumnSection(),
   gallerySection(),

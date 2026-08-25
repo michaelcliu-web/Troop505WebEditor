@@ -173,7 +173,33 @@ export const TOKENS = {
   columns: { 2: 'grid-cols-2', 3: 'grid-cols-2 sm:grid-cols-3', 4: 'grid-cols-2 sm:grid-cols-4' },
 }
 
-/** Look up a token, falling back to the default rather than rendering something broken. */
+/*
+  What each group falls back to when it's handed something it doesn't recognise.
+
+  This matters more than it looks. Without it, a typo like size: '3xl' produces NO size class
+  at all, and the text silently renders at whatever size it inherits — which looks broken but
+  gives no clue why. Falling back to the normal value instead means a bad value looks ordinary,
+  never broken.
+*/
+const TOKEN_FALLBACKS = {
+  textSize: 'md',
+  textAlign: 'left',
+  fontWeight: 'normal',
+  fontFamily: 'body',
+  textColor: 'bark',
+  bgColor: 'cream',
+  padding: 'lg',
+  maxWidth: 'normal',
+  gap: 'md',
+  rowAlign: 'center',
+  radius: 'md',
+  aspect: '4/3',
+  columns: 3,
+}
+
+/** Look up a token, falling back to the group's default rather than rendering something broken. */
 export function token(group, key, fallback = '') {
-  return TOKENS[group]?.[key] ?? fallback
+  const groupTokens = TOKENS[group]
+  if (!groupTokens) return fallback
+  return groupTokens[key] ?? groupTokens[TOKEN_FALLBACKS[group]] ?? fallback
 }
