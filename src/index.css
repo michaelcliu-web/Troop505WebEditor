@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+
+/*
+  Design tokens for the "cozy campfire" look.
+  These are the only place colors are defined — blocks reference them by name,
+  so the whole site can be re-themed from here.
+*/
+@theme {
+  --color-cream: #faf6ef;
+  --color-parchment: #f2ead9;
+  --color-bark: #3f2f21;
+  --color-forest: #2f4a34;
+  --color-forest-deep: #1f3323;
+  --color-ember: #c8622c;
+  --color-ember-bright: #e07b3c;
+  --color-dusk: #6b5a49;
+
+  --font-heading: 'Montserrat', 'Poppins', system-ui, sans-serif;
+  --font-body: 'Inter', 'Lato', system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--color-cream);
+  color: var(--color-bark);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
