@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
 import Renderer from './Renderer'
 import SiteHeader from './SiteHeader'
+import { makeBlock, makeRow, makeSection } from './schema'
 import { fixtureSite } from './data/fixture'
 import PropertiesPanel from './edit/PropertiesPanel'
 import {
+  addBlockToSection,
+  addSectionToPage,
+  deleteBlock,
+  deleteSection,
   findBlock,
   findSection,
   updateBlock,
@@ -70,6 +75,33 @@ export default function App() {
     )
   }
 
+  /*
+    Adding and removing. Same shape as the change functions above: build a new
+    site with one thing added or gone, hand it to setSite, React redraws.
+
+    The make* functions come from schema.js and build a correctly-shaped new item.
+    The add and delete functions come from pageOps.js and put it in (or take it out).
+  */
+  function addBlock(type) {
+    setSite((current) => addBlockToSection(current, selection.id, makeBlock(type)))
+  }
+
+  function removeBlock() {
+    setSite((current) => deleteBlock(current, selection.id))
+    setSelection(null) // the thing we were pointing at is gone
+  }
+
+  function addSection() {
+    const fresh = makeSection([makeRow([makeBlock('text', { content: 'New stripe' })])])
+    setSite((current) => addSectionToPage(current, currentSlug, fresh))
+    setSelection({ type: 'section', id: fresh.id }) // select it so it can be styled right away
+  }
+
+  function removeSection() {
+    setSite((current) => deleteSection(current, selection.id))
+    setSelection(null)
+  }
+
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <EditorBar
@@ -103,6 +135,10 @@ export default function App() {
             onChangeBlockProp={changeBlockProp}
             onChangeBlockWidth={changeBlockWidth}
             onChangeSection={changeSection}
+            onAddBlock={addBlock}
+            onRemoveBlock={removeBlock}
+            onAddSection={addSection}
+            onRemoveSection={removeSection}
           />
         )}
       </div>

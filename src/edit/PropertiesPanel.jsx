@@ -8,6 +8,9 @@ import Field from './Field'
   It builds itself from the control descriptions in controls.js. It contains no knowledge of
   any particular block type, which is why adding a new block type doesn't require touching
   this file at all.
+
+  It changes nothing itself. Every button calls a function App handed down, and App does
+  the actual work.
 */
 
 export default function PropertiesPanel({
@@ -17,6 +20,10 @@ export default function PropertiesPanel({
   onChangeBlockProp,
   onChangeBlockWidth,
   onChangeSection,
+  onAddBlock,
+  onRemoveBlock,
+  onAddSection,
+  onRemoveSection,
 }) {
   if (!selection) {
     return (
@@ -24,9 +31,10 @@ export default function PropertiesPanel({
         <p className="text-sm leading-relaxed text-stone-600">
           Click anything on the page to change it.
         </p>
-        <p className="mt-3 text-sm leading-relaxed text-stone-600">
+        <p className="text-sm leading-relaxed text-stone-600">
           Click the empty space around the content to change that whole stripe&apos;s background.
         </p>
+        <BigButton onClick={onAddSection}>Add a new stripe</BigButton>
       </Shell>
     )
   }
@@ -45,6 +53,21 @@ export default function PropertiesPanel({
             />
           )
         })}
+
+        <Divider label="Put something in this stripe" />
+        <div className="flex flex-col gap-2">
+          {Object.entries(BLOCK_TYPES).map(([type, spec]) => (
+            <BigButton key={type} onClick={() => onAddBlock(type)}>
+              {spec.addLabel}
+            </BigButton>
+          ))}
+        </div>
+
+        <Divider />
+        <BigButton onClick={onAddSection}>Add another stripe below</BigButton>
+        <BigButton danger onClick={onRemoveSection}>
+          Delete this whole stripe
+        </BigButton>
       </Shell>
     )
   }
@@ -80,11 +103,44 @@ export default function PropertiesPanel({
             onChange={(v) => onChangeBlockWidth(Math.round(v * 100))}
           />
         </div>
+
+        <Divider />
+        <BigButton danger onClick={onRemoveBlock}>
+          Delete this
+        </BigButton>
       </Shell>
     )
   }
 
   return null
+}
+
+/*
+  Big, plainly-worded buttons — the UX target is a non-technical scoutmaster,
+  not a designer hunting for small icons.
+*/
+function BigButton({ children, onClick, danger = false }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full cursor-pointer rounded-lg border px-4 py-3 text-left text-sm font-semibold transition-colors ${
+        danger
+          ? 'border-red-200 bg-white text-red-700 hover:bg-red-50'
+          : 'border-stone-300 bg-white text-stone-800 hover:bg-stone-100'
+      }`}
+    >
+      {children}
+    </button>
+  )
+}
+
+function Divider({ label }) {
+  return (
+    <div className="border-t border-stone-200 pt-4">
+      {label && <p className="mb-2 text-xs font-semibold text-stone-500">{label}</p>}
+    </div>
+  )
 }
 
 function Shell({ title, subtitle, children }) {

@@ -11,6 +11,8 @@
   version intact, so keeping a list of old versions costs almost nothing.
 */
 
+import { makeRow } from '../schema'
+
 /** Apply `fn` to the block with this id, anywhere in the site. Returns a new site. */
 function mapBlock(site, blockId, fn) {
   return {
@@ -91,4 +93,64 @@ export function findSection(site, sectionId) {
     }
   }
   return null
+}
+
+/*
+  ── Adding and removing ──
+
+  Same rule as everything above: never change what's there, build a new copy.
+  Adding is just a copy of the list with one more item; removing is a copy with
+  one fewer. The `make*` functions in schema.js build the new item itself.
+*/
+
+/** Add a block to the end of a section, in a row of its own. */
+export function addBlockToSection(site, sectionId, block) {
+  return {
+    ...site,
+    pages: site.pages.map((page) => ({
+      ...page,
+      sections: page.sections.map((section) =>
+        section.id === sectionId
+          ? { ...section, rows: [...section.rows, makeRow([block])] }
+          : section,
+      ),
+    })),
+  }
+}
+
+/** Remove a block. If that empties its row, the row goes too. */
+export function deleteBlock(site, blockId) {
+  return {
+    ...site,
+    pages: site.pages.map((page) => ({
+      ...page,
+      sections: page.sections.map((section) => ({
+        ...section,
+        rows: section.rows
+          .map((row) => ({ ...row, blocks: row.blocks.filter((b) => b.id !== blockId) }))
+          .filter((row) => row.blocks.length > 0),
+      })),
+    })),
+  }
+}
+
+/** Add a section to the end of a page. */
+export function addSectionToPage(site, pageSlug, section) {
+  return {
+    ...site,
+    pages: site.pages.map((page) =>
+      page.slug === pageSlug ? { ...page, sections: [...page.sections, section] } : page,
+    ),
+  }
+}
+
+/** Remove a whole section and everything in it. */
+export function deleteSection(site, sectionId) {
+  return {
+    ...site,
+    pages: site.pages.map((page) => ({
+      ...page,
+      sections: page.sections.filter((section) => section.id !== sectionId),
+    })),
+  }
 }
