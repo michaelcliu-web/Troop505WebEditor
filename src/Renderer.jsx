@@ -24,11 +24,18 @@ import { token } from './schema'
 
 function Block({ block, editing, selectedId, onSelect, onChangeProp, onDelete }) {
   const Component = BLOCK_COMPONENTS[block.type]
+  const isSelected = selectedId === block.id
 
   // Unknown type: don't crash the whole page. This happens if a page was saved by a newer
   // version of the app than the one currently running.
   const content = Component ? (
-    <Component props={block.props} />
+    <Component
+      props={block.props}
+      // Only the selected block, only in edit mode, can be typed into.
+      // Blocks that don't support typing simply ignore these two props.
+      editable={editing && isSelected}
+      onChangeContent={(text) => onChangeProp('content', text)}
+    />
   ) : (
     <div className="rounded-lg bg-[var(--color-parchment)] p-4 text-sm text-[var(--color-dusk)]">
       Can&apos;t show this yet ({block.type})
@@ -36,8 +43,6 @@ function Block({ block, editing, selectedId, onSelect, onChangeProp, onDelete })
   )
 
   if (!editing) return content
-
-  const isSelected = selectedId === block.id
 
   return (
     <div
