@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Renderer from './Renderer'
 import SiteHeader from './SiteHeader'
 import { makeBlock, makeRow, makeSection } from './schema'
 import { fixtureSite } from './data/fixture'
 import PropertiesPanel from './edit/PropertiesPanel'
+import VersionList from './edit/VersionList'
 import useHistory from './state/useHistory'
+import useVersions from './state/useVersions'
 import {
   addBlockToSection,
   addSectionToPage,
@@ -44,7 +46,19 @@ export default function App() {
   const [editing, setEditing] = useState(true)
   const [selection, setSelection] = useState(null) // { type: 'block'|'section', id }
 
-  const page = site.pages.find((p) => p.slug === currentSlug) ?? site.pages[0]
+  /*
+    Version history: coarse snapshots that undo can never destroy.
+    `sidebar` decides which view the right-hand panel is showing.
+    `previewing` is a saved version being looked at — nothing is changed until it's restored.
+  */
+  const { versions, saveVersion } = useVersions()
+  const [sidebar, setSidebar] = useState('properties') // 'properties' | 'versions'
+  const [previewing, setPreviewing] = useState(null)
+  const editsSinceSnapshot = useRef(0)
+
+  // While previewing an old version, the canvas shows THAT site instead of the live one.
+  const shownSite = previewing ? previewing.site : site
+  const page = shownSite.pages.find((p) => p.slug === currentSlug) ?? shownSite.pages[0]
 
   /*
     Escape deselects. Sections cover the whole canvas, so there is no "empty space" left to
@@ -65,6 +79,18 @@ export default function App() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [undo, redo])
+
+  /*
+    Save a version every few edits. Not every edit — that would be a wall of near-identical
+    entries. `site` only changes when something really changed, so this counts real edits.
+  */
+  useEffect(() => {
+    editsSinceSnapshot.current += 1
+    if (editsSinceSnapshot.current >= 8) {
+      editsSinceSnapshot.current = 0
+      saveVersion(site, 'Autosaved')
+    }
+  }, [site, saveVersion])
 
   const selectedBlock = selection?.type === 'block' ? findBlock(site, selection.id) : null
   const selectedSection = selection?.type === 'section' ? findSection(site, selection.id) : null
@@ -117,6 +143,13 @@ export default function App() {
     setSelection({ type: 'section', id: fresh.id }) // select it so it can be styled right away
   }
 
+  function restoreVersion(version) {
+    commit(() => version.site) // restoring is just another edit, so it can be undone
+    setPreviewing(null)
+    setSelection(null)
+    setSidebar('properties')
+  }
+
   function removeSection() {
     commit((current) => deleteSection(current, selection.id))
     setSelection(null)
@@ -135,10 +168,10 @@ export default function App() {
       <div className="flex min-h-0 flex-1">
         {/* The page itself — the same Renderer that draws the public site. */}
         <div className="min-w-0 flex-1 overflow-y-auto">
-          <SiteHeader site={site} currentSlug={currentSlug} onNavigate={setCurrentSlug} />
+          <SiteHeader site={shownSite} currentSlug={currentSlug} onNavigate={setCurrentSlug} />
           <Renderer
             page={page}
-            editing={editing}
+            editing={editing && !previewing}
             selectedId={selection?.id ?? null}
             onSelect={setSelection}
             onChangeProp={changeBlockProp}
@@ -151,7 +184,22 @@ export default function App() {
           </footer>
         </div>
 
-        {editing && (
+        {editing && sidebar === 'versions' && (
+          <VersionList
+            versions={versions}
+            previewing={previewing}
+            onPreview={setPreviewing}
+            onRestore={restoreVersion}
+            onStopPreview={() => setPreviewing(null)}
+            onSaveNow={() => saveVersion(site, 'Saved by you')}
+            onBack={() => {
+              setPreviewing(null)
+              setSidebar('properties')
+            }}
+          />
+        )}
+
+        {editing && sidebar === 'properties' && (
           <PropertiesPanel
             selection={selection}
             block={selectedBlock}
@@ -167,6 +215,7 @@ export default function App() {
             onRedo={redo}
             canUndo={canUndo}
             canRedo={canRedo}
+            onShowVersions={() => setSidebar('versions')}
           />
         )}
       </div>
