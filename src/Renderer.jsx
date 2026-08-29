@@ -22,7 +22,7 @@ import { token } from './schema'
   drift apart.
 */
 
-function Block({ block, editing, selectedId, onSelect, onChangeProp, onDelete }) {
+function Block({ block, editing, selectedId, onSelect, onChangeProp, onDelete, onUndo, canUndo }) {
   const Component = BLOCK_COMPONENTS[block.type]
   const isSelected = selectedId === block.id
 
@@ -63,14 +63,20 @@ function Block({ block, editing, selectedId, onSelect, onChangeProp, onDelete })
         Editor-only: it is never part of the page data, so visitors never see it.
       */}
       {isSelected && (
-        <BlockToolbar block={block} onChangeProp={onChangeProp} onDelete={onDelete} />
+        <BlockToolbar
+          block={block}
+          onChangeProp={onChangeProp}
+          onDelete={onDelete}
+          onUndo={onUndo}
+          canUndo={canUndo}
+        />
       )}
       {content}
     </div>
   )
 }
 
-function Row({ row, editing, selectedId, onSelect, onChangeProp, onDelete }) {
+function Row({ row, editing, selectedId, onSelect, onChangeProp, onDelete, onUndo, canUndo }) {
   return (
     <div
       className={`flex flex-col sm:flex-row ${token('gap', row.gap)} ${token('rowAlign', row.align)}`}
@@ -93,6 +99,8 @@ function Row({ row, editing, selectedId, onSelect, onChangeProp, onDelete }) {
             onSelect={onSelect}
             onChangeProp={onChangeProp}
             onDelete={onDelete}
+            onUndo={onUndo}
+            canUndo={canUndo}
           />
         </div>
       ))}
@@ -100,7 +108,7 @@ function Row({ row, editing, selectedId, onSelect, onChangeProp, onDelete }) {
   )
 }
 
-function Section({ section, editing, selectedId, onSelect, onChangeProp, onDelete }) {
+function Section({ section, editing, selectedId, onSelect, onChangeProp, onDelete, onUndo, canUndo }) {
   const { background, padding, maxWidth, rows } = section
   const isImage = background?.type === 'image' && background.value
 
@@ -159,6 +167,8 @@ function Section({ section, editing, selectedId, onSelect, onChangeProp, onDelet
               onSelect={onSelect}
               onChangeProp={onChangeProp}
               onDelete={onDelete}
+              onUndo={onUndo}
+              canUndo={canUndo}
             />
           ))}
         </div>
@@ -174,6 +184,8 @@ export default function Renderer({
   onSelect = () => {},
   onChangeProp = () => {},
   onDelete = () => {},
+  onUndo = () => {},
+  canUndo = false,
 }) {
   if (!page) return null
 
@@ -188,6 +200,8 @@ export default function Renderer({
           onSelect={onSelect}
           onChangeProp={onChangeProp}
           onDelete={onDelete}
+          onUndo={onUndo}
+          canUndo={canUndo}
         />
       ))}
     </main>

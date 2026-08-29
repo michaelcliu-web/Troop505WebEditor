@@ -13,7 +13,7 @@ import { BLOCK_CONTROLS } from './controls'
   else stays in the side panel.
 */
 
-export default function BlockToolbar({ block, onChangeProp, onDelete }) {
+export default function BlockToolbar({ block, onChangeProp, onDelete, onUndo, canUndo }) {
   const quick = (BLOCK_CONTROLS[block.type] ?? []).filter((c) => c.quick)
 
   return (
@@ -42,6 +42,16 @@ export default function BlockToolbar({ block, onChangeProp, onDelete }) {
       ))}
 
       {quick.length > 0 && <span className="mx-0.5 h-5 w-px bg-stone-200" />}
+
+      <button
+        type="button"
+        title="Undo the last change"
+        onClick={onUndo}
+        disabled={!canUndo}
+        className="cursor-pointer rounded border-0 bg-transparent px-2 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-100 disabled:cursor-default disabled:text-stone-300 disabled:hover:bg-transparent"
+      >
+        Undo
+      </button>
 
       <button
         type="button"

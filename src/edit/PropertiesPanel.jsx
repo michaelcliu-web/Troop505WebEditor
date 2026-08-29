@@ -24,10 +24,16 @@ export default function PropertiesPanel({
   onRemoveBlock,
   onAddSection,
   onRemoveSection,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
 }) {
+  // Passed to every Shell below so the undo row shows in all panel states.
+  const history = { onUndo, onRedo, canUndo, canRedo }
   if (!selection) {
     return (
-      <Shell title="Nothing selected">
+      <Shell title="Nothing selected" history={history}>
         <p className="text-sm leading-relaxed text-stone-600">
           Click anything on the page to change it.
         </p>
@@ -41,7 +47,7 @@ export default function PropertiesPanel({
 
   if (selection.type === 'section' && section) {
     return (
-      <Shell title="This stripe" subtitle="Background and spacing for this band of the page">
+      <Shell title="This stripe" subtitle="Background and spacing for this band of the page" history={history}>
         {SECTION_CONTROLS.map((control, i) => {
           if (control.showIf && !control.showIf(section)) return null
           return (
@@ -77,7 +83,7 @@ export default function PropertiesPanel({
     const controls = BLOCK_CONTROLS[block.type] ?? []
 
     return (
-      <Shell title={spec?.label ?? block.type}>
+      <Shell title={spec?.label ?? block.type} history={history}>
         {controls.map((control) => (
           <Field
             key={control.key}
@@ -135,6 +141,19 @@ function BigButton({ children, onClick, danger = false }) {
   )
 }
 
+function SmallButton({ children, onClick, disabled }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="flex-1 cursor-pointer rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-800 transition-colors hover:bg-stone-100 disabled:cursor-default disabled:border-stone-200 disabled:text-stone-300 disabled:hover:bg-white"
+    >
+      {children}
+    </button>
+  )
+}
+
 function Divider({ label }) {
   return (
     <div className="border-t border-stone-200 pt-4">
@@ -143,9 +162,19 @@ function Divider({ label }) {
   )
 }
 
-function Shell({ title, subtitle, children }) {
+function Shell({ title, subtitle, history, children }) {
   return (
     <aside className="flex h-full w-80 shrink-0 flex-col border-l border-stone-200 bg-stone-50">
+      {history && (
+        <div className="flex gap-2 border-b border-stone-200 px-5 py-3">
+          <SmallButton onClick={history.onUndo} disabled={!history.canUndo}>
+            Undo
+          </SmallButton>
+          <SmallButton onClick={history.onRedo} disabled={!history.canRedo}>
+            Redo
+          </SmallButton>
+        </div>
+      )}
       <div className="border-b border-stone-200 px-5 py-4">
         <h2 className="font-[family-name:var(--font-heading)] text-lg font-bold text-stone-900">
           {title}

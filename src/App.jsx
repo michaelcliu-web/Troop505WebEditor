@@ -4,6 +4,7 @@ import SiteHeader from './SiteHeader'
 import { makeBlock, makeRow, makeSection } from './schema'
 import { fixtureSite } from './data/fixture'
 import PropertiesPanel from './edit/PropertiesPanel'
+import useHistory from './state/useHistory'
 import {
   addBlockToSection,
   addSectionToPage,
@@ -33,7 +34,12 @@ import {
 */
 
 export default function App() {
-  const [site, setSite] = useState(fixtureSite)
+  /*
+    The site now lives in a history rather than a plain useState, so every change
+    can be stepped back. `commit` replaces setSite and takes exactly the same kind
+    of function: (currentSite) => newSite
+  */
+  const { site, commit, undo, redo, canUndo, canRedo } = useHistory(fixtureSite)
   const [currentSlug, setCurrentSlug] = useState(fixtureSite.pages[0].slug)
   const [editing, setEditing] = useState(true)
   const [selection, setSelection] = useState(null) // { type: 'block'|'section', id }
@@ -47,28 +53,42 @@ export default function App() {
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') setSelection(null)
+
+      // Cmd-Z to undo, Cmd-Shift-Z to redo (Ctrl on Windows).
+      const holdingCommand = e.metaKey || e.ctrlKey
+      if (holdingCommand && e.key.toLowerCase() === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) redo()
+        else undo()
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [undo, redo])
 
   const selectedBlock = selection?.type === 'block' ? findBlock(site, selection.id) : null
   const selectedSection = selection?.type === 'section' ? findSection(site, selection.id) : null
 
   /*
     Each of these takes the current site, builds a NEW site with one thing changed, and hands
-    it to setSite. Every edit in the whole app funnels through these three functions.
+    it to commit. Every edit in the whole app funnels through these three functions.
   */
   function changeBlockProp(key, value) {
-    setSite((current) => updateBlockProps(current, selection.id, { [key]: value }))
+    /*
+      The mergeKey is what stops a burst of typing becoming 40 undo steps. Rapid changes
+      to the same field of the same block collapse into one. Changing a dropdown passes
+      no key, so it always gets its own step.
+    */
+    const mergeKey = key === 'content' ? `content:${selection.id}` : null
+    commit((current) => updateBlockProps(current, selection.id, { [key]: value }), mergeKey)
   }
 
   function changeBlockWidth(width) {
-    setSite((current) => updateBlock(current, selection.id, { width }))
+    commit((current) => updateBlock(current, selection.id, { width }))
   }
 
   function changeSection(path, value) {
-    setSite((current) =>
+    commit((current) =>
       path.startsWith('background.')
         ? updateSectionBackground(current, selection.id, { [path.slice('background.'.length)]: value })
         : updateSection(current, selection.id, { [path]: value }),
@@ -77,28 +97,28 @@ export default function App() {
 
   /*
     Adding and removing. Same shape as the change functions above: build a new
-    site with one thing added or gone, hand it to setSite, React redraws.
+    site with one thing added or gone, hand it to commit, React redraws.
 
     The make* functions come from schema.js and build a correctly-shaped new item.
     The add and delete functions come from pageOps.js and put it in (or take it out).
   */
   function addBlock(type) {
-    setSite((current) => addBlockToSection(current, selection.id, makeBlock(type)))
+    commit((current) => addBlockToSection(current, selection.id, makeBlock(type)))
   }
 
   function removeBlock() {
-    setSite((current) => deleteBlock(current, selection.id))
+    commit((current) => deleteBlock(current, selection.id))
     setSelection(null) // the thing we were pointing at is gone
   }
 
   function addSection() {
     const fresh = makeSection([makeRow([makeBlock('text', { content: 'New stripe' })])])
-    setSite((current) => addSectionToPage(current, currentSlug, fresh))
+    commit((current) => addSectionToPage(current, currentSlug, fresh))
     setSelection({ type: 'section', id: fresh.id }) // select it so it can be styled right away
   }
 
   function removeSection() {
-    setSite((current) => deleteSection(current, selection.id))
+    commit((current) => deleteSection(current, selection.id))
     setSelection(null)
   }
 
@@ -123,6 +143,8 @@ export default function App() {
             onSelect={setSelection}
             onChangeProp={changeBlockProp}
             onDelete={removeBlock}
+            onUndo={undo}
+            canUndo={canUndo}
           />
           <footer className="bg-[var(--color-forest-deep)] px-5 py-10 text-center text-sm text-[var(--color-cream)]/70">
             Scaffolding — showing throwaway placeholder content
@@ -141,6 +163,10 @@ export default function App() {
             onRemoveBlock={removeBlock}
             onAddSection={addSection}
             onRemoveSection={removeSection}
+            onUndo={undo}
+            onRedo={redo}
+            canUndo={canUndo}
+            canRedo={canRedo}
           />
         )}
       </div>
