@@ -121,6 +121,8 @@ export default function App() {
             editing={editing}
             selectedId={selection?.id ?? null}
             onSelect={setSelection}
+            onChangeProp={changeBlockProp}
+            onDelete={removeBlock}
           />
           <footer className="bg-[var(--color-forest-deep)] px-5 py-10 text-center text-sm text-[var(--color-cream)]/70">
             Scaffolding — showing throwaway placeholder content

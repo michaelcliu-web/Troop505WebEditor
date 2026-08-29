@@ -1,4 +1,5 @@
 import { BLOCK_COMPONENTS } from './blocks'
+import BlockToolbar from './edit/BlockToolbar'
 import { token } from './schema'
 
 /*
@@ -21,7 +22,7 @@ import { token } from './schema'
   drift apart.
 */
 
-function Block({ block, editing, selectedId, onSelect }) {
+function Block({ block, editing, selectedId, onSelect, onChangeProp, onDelete }) {
   const Component = BLOCK_COMPONENTS[block.type]
 
   // Unknown type: don't crash the whole page. This happens if a page was saved by a newer
@@ -47,16 +48,24 @@ function Block({ block, editing, selectedId, onSelect }) {
       }}
       className={`relative cursor-pointer rounded-lg outline-offset-4 transition-all ${
         isSelected
-          ? 'outline outline-2 outline-[var(--color-ember)]'
-          : 'hover:outline hover:outline-2 hover:outline-dashed hover:outline-[var(--color-ember)]/50'
+          ? 'outline outline-2 outline-blue-500'
+          : 'hover:outline hover:outline-2 hover:outline-dashed hover:outline-blue-400/60'
       }`}
     >
+      {/*
+        The floating toolbar. It lives inside this wrapper, which is `relative`,
+        so it positions itself against THIS block and follows it around.
+        Editor-only: it is never part of the page data, so visitors never see it.
+      */}
+      {isSelected && (
+        <BlockToolbar block={block} onChangeProp={onChangeProp} onDelete={onDelete} />
+      )}
       {content}
     </div>
   )
 }
 
-function Row({ row, editing, selectedId, onSelect }) {
+function Row({ row, editing, selectedId, onSelect, onChangeProp, onDelete }) {
   return (
     <div
       className={`flex flex-col sm:flex-row ${token('gap', row.gap)} ${token('rowAlign', row.align)}`}
@@ -72,14 +81,21 @@ function Row({ row, editing, selectedId, onSelect }) {
           pixel positioning.
         */
         <div key={block.id} className="w-full" style={{ flexBasis: `${block.width}%` }}>
-          <Block block={block} editing={editing} selectedId={selectedId} onSelect={onSelect} />
+          <Block
+            block={block}
+            editing={editing}
+            selectedId={selectedId}
+            onSelect={onSelect}
+            onChangeProp={onChangeProp}
+            onDelete={onDelete}
+          />
         </div>
       ))}
     </div>
   )
 }
 
-function Section({ section, editing, selectedId, onSelect }) {
+function Section({ section, editing, selectedId, onSelect, onChangeProp, onDelete }) {
   const { background, padding, maxWidth, rows } = section
   const isImage = background?.type === 'image' && background.value
 
@@ -112,7 +128,7 @@ function Section({ section, editing, selectedId, onSelect }) {
       className={`relative w-full ${colorClass} ${
         editing
           ? `cursor-pointer -outline-offset-2 ${
-              isSelected ? 'outline outline-2 outline-[var(--color-ember)]' : ''
+              isSelected ? 'outline outline-2 outline-blue-500' : ''
             }`
           : ''
       }`}
@@ -136,6 +152,8 @@ function Section({ section, editing, selectedId, onSelect }) {
               editing={editing}
               selectedId={selectedId}
               onSelect={onSelect}
+              onChangeProp={onChangeProp}
+              onDelete={onDelete}
             />
           ))}
         </div>
@@ -144,7 +162,14 @@ function Section({ section, editing, selectedId, onSelect }) {
   )
 }
 
-export default function Renderer({ page, editing = false, selectedId = null, onSelect = () => {} }) {
+export default function Renderer({
+  page,
+  editing = false,
+  selectedId = null,
+  onSelect = () => {},
+  onChangeProp = () => {},
+  onDelete = () => {},
+}) {
   if (!page) return null
 
   return (
@@ -156,6 +181,8 @@ export default function Renderer({ page, editing = false, selectedId = null, onS
           editing={editing}
           selectedId={selectedId}
           onSelect={onSelect}
+          onChangeProp={onChangeProp}
+          onDelete={onDelete}
         />
       ))}
     </main>

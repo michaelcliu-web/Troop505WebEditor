@@ -57,8 +57,8 @@ export const BLOCK_CONTROLS = {
         { value: 'p', label: 'Paragraph' },
       ],
     },
-    { key: 'size', label: 'How big', type: 'select', options: SIZE_CHOICES },
-    { key: 'align', label: 'Position', type: 'select', options: ALIGN_CHOICES },
+    { key: 'size', label: 'How big', type: 'select', options: SIZE_CHOICES, quick: true },
+    { key: 'align', label: 'Position', type: 'select', options: ALIGN_CHOICES, quick: true },
     {
       key: 'font',
       label: 'Font',
@@ -72,13 +72,14 @@ export const BLOCK_CONTROLS = {
       key: 'weight',
       label: 'Thickness',
       type: 'select',
+      quick: true,
       options: [
         { value: 'normal', label: 'Normal' },
         { value: 'medium', label: 'Medium' },
         { value: 'bold', label: 'Bold' },
       ],
     },
-    { key: 'color', label: 'Color', type: 'select', options: COLOR_CHOICES },
+    { key: 'color', label: 'Color', type: 'select', options: COLOR_CHOICES, quick: true },
   ],
 
   image: [
@@ -93,6 +94,7 @@ export const BLOCK_CONTROLS = {
       key: 'aspect',
       label: 'Shape',
       type: 'select',
+      quick: true,
       options: [
         { value: '4/3', label: 'Standard' },
         { value: '16/9', label: 'Wide' },
@@ -131,6 +133,7 @@ export const BLOCK_CONTROLS = {
       key: 'variant',
       label: 'Style',
       type: 'select',
+      quick: true,
       options: [
         { value: 'primary', label: 'Orange (most important)' },
         { value: 'secondary', label: 'Green' },
@@ -161,6 +164,7 @@ export const BLOCK_CONTROLS = {
       key: 'columns',
       label: 'Photos per row',
       type: 'select',
+      quick: true,
       options: [
         { value: 2, label: '2' },
         { value: 3, label: '3' },
