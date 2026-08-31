@@ -30,6 +30,11 @@ export const BLOCK_TYPES = {
       size: 'md', // sm | md | lg | xl | 2xl
       color: 'bark',
       weight: 'normal', // normal | medium | bold
+      italic: false,
+      underline: false,
+      highlight: 'none', // none | yellow | green | pink | blue
+      href: '', // wraps the whole block in a link when set
+      list: 'none', // none | bullet | number — one item per line
     },
   },
   image: {
@@ -170,6 +175,13 @@ export const TOKENS = {
     full: 'rounded-full',
   },
   aspect: { '4/3': 'aspect-[4/3]', '16/9': 'aspect-video', '1/1': 'aspect-square', auto: '' },
+  highlight: {
+    none: '',
+    yellow: 'bg-yellow-200/80',
+    green: 'bg-green-200/80',
+    pink: 'bg-pink-200/80',
+    blue: 'bg-blue-200/80',
+  },
   columns: { 2: 'grid-cols-2', 3: 'grid-cols-2 sm:grid-cols-3', 4: 'grid-cols-2 sm:grid-cols-4' },
 }
 
@@ -195,6 +207,7 @@ const TOKEN_FALLBACKS = {
   radius: 'md',
   aspect: '4/3',
   columns: 3,
+  highlight: 'none',
 }
 
 /** Look up a token, falling back to the group's default rather than rendering something broken. */
